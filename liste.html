@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#0f766e">
+<title>Kargo Listesi</title>
+<style>
+:root{
+  --bg:#f3f5f4; --card:#ffffff; --ink:#12201d; --mute:#5d6b68; --line:#d9e0de;
+  --brand:#0f766e; --brand-ink:#ffffff; --ok-bg:#dcf5e6; --ok-ink:#14613a; --ok-line:#9fdcb8;
+  --warn:#b45309; --danger:#b42318;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0e1514; --card:#18211f; --ink:#e9f0ee; --mute:#9aaba7; --line:#2a3734;
+    --brand:#14b8a6; --brand-ink:#04201c; --ok-bg:#12382a; --ok-ink:#8fe3b4; --ok-line:#1f5a41;
+    --warn:#fbbf24; --danger:#ff8a80;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;-webkit-text-size-adjust:100%}
+button,input{font:inherit;color:inherit}
+.wrap{max-width:720px;margin:0 auto;padding:16px}
+h1{font-size:22px;margin:0 0 4px}
+.sub{color:var(--mute);margin:0 0 16px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 18px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-weight:600;cursor:pointer;text-decoration:none;color:var(--ink)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.btn.wa{background:#1faa59;border-color:#1faa59;color:#fff}
+.btn.small{min-height:40px;padding:0 12px;font-size:14px}
+.btn:active{transform:scale(.98)}
+.hidden{display:none !important}
+
+/* ---------- Yükleme ekranı ---------- */
+.drop{display:block;border:2px dashed var(--line);border-radius:16px;background:var(--card);padding:36px 16px;text-align:center;cursor:pointer}
+.drop.over{border-color:var(--brand)}
+.drop strong{display:block;font-size:18px;margin-bottom:6px}
+.drop span{color:var(--mute)}
+.msg{margin:14px 0;padding:12px 14px;border-radius:12px;background:var(--card);border:1px solid var(--line)}
+.msg.err{border-color:var(--danger);color:var(--danger)}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}
+.linkbox{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--card);font-size:13px;color:var(--mute)}
+.preview{margin-top:8px;border:1px solid var(--line);border-radius:12px;background:var(--card);overflow:hidden}
+.preview div{display:flex;justify-content:space-between;gap:12px;padding:8px 12px;border-top:1px solid var(--line);font-size:14px}
+.preview div:first-child{border-top:0}
+.preview code{font-family:ui-monospace,Consolas,monospace;color:var(--mute);white-space:nowrap}
+
+/* ---------- Liste ekranı ---------- */
+.top{position:sticky;top:0;z-index:5;background:var(--bg);padding:10px 16px 8px;border-bottom:1px solid var(--line)}
+.top-in{max-width:720px;margin:0 auto}
+.title{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.title b{font-size:17px}
+.title span{color:var(--mute);font-size:13px;white-space:nowrap}
+.count{display:flex;align-items:baseline;gap:10px;margin:4px 0 6px}
+.count .big{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums}
+.count .left{color:var(--warn);font-weight:700}
+.count .left.done{color:var(--ok-ink)}
+.bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--brand);transition:width .2s}
+.tools{display:flex;gap:8px;margin-top:8px}
+.tools input{flex:1;min-width:0;min-height:44px;padding:0 12px;border-radius:10px;border:1px solid var(--line);background:var(--card)}
+.list{max-width:720px;margin:0 auto;padding:10px 12px 120px}
+.sec{margin:16px 4px 6px;color:var(--mute);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.row{display:flex;align-items:center;gap:12px;width:100%;min-height:68px;margin:0 0 8px;padding:10px 12px;border-radius:14px;border:1px solid var(--line);background:var(--card);text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none}
+.row .box{flex:0 0 34px;height:34px;border-radius:9px;border:2px solid var(--mute);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:transparent}
+.row .txt{flex:1;min-width:0}
+.row .nm{display:block;font-size:18px;font-weight:700;overflow-wrap:anywhere}
+.row .bc{display:block;font-family:ui-monospace,Consolas,monospace;font-size:15px;color:var(--mute);margin-top:2px}
+.row .bc b{color:var(--ink);font-size:17px}
+.row .no{flex:0 0 auto;color:var(--mute);font-size:13px;font-variant-numeric:tabular-nums}
+.row.on{background:var(--ok-bg);border-color:var(--ok-line)}
+.row.on .box{background:var(--ok-ink);border-color:var(--ok-ink);color:var(--ok-bg)}
+.row.on .nm{text-decoration:line-through;color:var(--ok-ink)}
+.row.on .bc b{color:var(--ok-ink)}
+.empty{padding:22px 12px;text-align:center;color:var(--mute)}
+.alldone{margin:6px 0 12px;padding:16px;border-radius:14px;background:var(--ok-bg);border:1px solid var(--ok-line);color:var(--ok-ink);font-weight:700;text-align:center;font-size:18px}
+.foot{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--bg);border-top:1px solid var(--line);padding:10px 12px calc(10px + env(safe-area-inset-bottom))}
+.foot-in{max-width:720px;margin:0 auto;display:flex;gap:8px}
+.foot .btn{flex:1;white-space:nowrap}
+.foot .btn.reset{flex:0 0 auto}
+</style>
+</head>
+<body>
+
+<!-- ================= YÜKLEME EKRANI ================= -->
+<div id="vUpload" class="wrap hidden">
+  <h1>Kargo Listesi</h1>
+  <p class="sub">Panelden indirdiğin Excel dosyasını buraya at, telefonda işaretlenen listeye çevirsin.</p>
+
+  <label class="drop" id="drop">
+    <strong>Excel dosyasını seç ya da buraya sürükle</strong>
+    <span>.xls / .xlsx</span>
+    <input type="file" id="file" accept=".xls,.xlsx,.csv,.htm,.html" class="hidden">
+  </label>
+
+  <div id="uMsg" class="msg hidden"></div>
+
+  <div id="uResult" class="hidden">
+    <div class="actions">
+      <a class="btn wa" id="bWa" target="_blank" rel="noopener">WhatsApp'tan gönder</a>
+      <button class="btn" id="bCopy" type="button">Linki kopyala</button>
+      <a class="btn" id="bOpen" target="_blank" rel="noopener">Listeyi aç</a>
+    </div>
+    <input class="linkbox" id="link" readonly>
+    <div class="sec">Listedekiler</div>
+    <div class="preview" id="preview"></div>
+  </div>
+</div>
+
+<!-- ================= LİSTE EKRANI ================= -->
+<div id="vList" class="hidden">
+  <div class="top"><div class="top-in">
+    <div class="title"><b>Kargo listesi</b><span id="lDate"></span></div>
+    <div class="count"><span class="big" id="cDone">0 / 0</span><span class="left" id="cLeft"></span></div>
+    <div class="bar"><i id="bar"></i></div>
+    <div class="tools">
+      <input id="q" type="search" inputmode="search" placeholder="İsim / barkod ara" autocomplete="off">
+      <button class="btn small" id="bSort" type="button">A-Z</button>
+    </div>
+  </div></div>
+
+  <div class="list">
+    <div id="allDone" class="alldone hidden">Hepsi çantada, eksik yok ✓</div>
+    <div id="todo"></div>
+    <div id="doneSec" class="sec hidden">Çantaya konanlar</div>
+    <div id="done"></div>
+  </div>
+
+  <div class="foot"><div class="foot-in">
+    <a class="btn wa" id="bReport" target="_blank" rel="noopener">WhatsApp'tan bildir</a>
+    <button class="btn reset" id="bReset" type="button">Sıfırla</button>
+  </div></div>
+</div>
+
+<div id="vErr" class="wrap hidden">
+  <h1>Liste açılamadı</h1>
+  <p class="sub">Link eksik kopyalanmış olabilir. Linkin tamamını tekrar isteyin.</p>
+</div>
+
+<script>
+(function(){
+'use strict';
+var $ = function(id){ return document.getElementById(id); };
+var trLower = function(s){ return String(s).toLocaleLowerCase('tr'); };
+
+/* ============================================================
+   1) EXCEL (.xls) OKUYUCU — dosya tarayıcıda okunur, hiçbir yere yüklenmez
+   ============================================================ */
+function readXls(buf){
+  var u8 = new Uint8Array(buf), dv = new DataView(buf);
+  var sig = [0xD0,0xCF,0x11,0xE0,0xA1,0xB1,0x1A,0xE1];
+  for (var i=0;i<8;i++) if (u8[i]!==sig[i]) throw new Error('xls değil');
+  var ss = 1 << dv.getUint16(30,true), mss = 1 << dv.getUint16(32,true);
+  var dirStart = dv.getUint32(48,true), cutoff = dv.getUint32(56,true);
+  var miniFatStart = dv.getUint32(60,true), difatStart = dv.getUint32(68,true), nDifat = dv.getUint32(72,true);
+  var END = 0xFFFFFFFE, FREE = 0xFFFFFFFF;
+  var off = function(n){ return (n+1)*ss; };
+
+  var fatSecs = [];
+  for (i=0;i<109;i++){ var s = dv.getUint32(76+i*4,true); if (s<END) fatSecs.push(s); }
+  var d = difatStart, guard = 0;
+  while (d<END && nDifat-- > 0 && guard++ < 10000){
+    for (i=0;i<ss/4-1;i++){ s = dv.getUint32(off(d)+i*4,true); if (s<END) fatSecs.push(s); }
+    d = dv.getUint32(off(d)+ss-4,true);
+  }
+  var fat = [];
+  fatSecs.forEach(function(sec){ for (var k=0;k<ss/4;k++) fat.push(dv.getUint32(off(sec)+k*4,true)); });
+
+  function chain(start, table, size, getSec){
+    var parts = [], n = start, total = 0, g = 0;
+    while (n<END && n!==FREE && g++ < 1000000){
+      var p = getSec(n); parts.push(p); total += p.length; n = table[n];
+      if (n===undefined) break;
+    }
+    var out = new Uint8Array(total), o = 0;
+    parts.forEach(function(p){ out.set(p,o); o += p.length; });
+    return (size!=null && size<out.length) ? out.subarray(0,size) : out;
+  }
+  var bigSec = function(n){ return u8.subarray(off(n), Math.min(off(n)+ss, u8.length)); };
+
+  var dir = chain(dirStart, fat, null, bigSec);
+  var ddv = new DataView(dir.buffer, dir.byteOffset, dir.byteLength);
+  var root = null, wb = null;
+  for (i=0; i+128<=dir.length; i+=128){
+    var nlen = ddv.getUint16(i+64,true), type = dir[i+66];
+    if (!type || nlen<2) continue;
+    var name = '';
+    for (var k=0;k<nlen-2;k+=2) name += String.fromCharCode(ddv.getUint16(i+k,true));
+    var ent = { start: ddv.getUint32(i+116,true), size: ddv.getUint32(i+120,true) };
+    if (type===5) root = ent;
+    if (type===2 && (name==='Workbook' || name==='Book') && !wb) wb = ent;
+  }
+  if (!wb) throw new Error('Workbook yok');
+
+  var stream;
+  if (wb.size < cutoff && root){
+    var mini = chain(root.start, fat, root.size, bigSec);
+    var mfRaw = chain(miniFatStart, fat, null, bigSec);
+    var mdv = new DataView(mfRaw.buffer, mfRaw.byteOffset, mfRaw.byteLength), miniFat = [];
+    for (i=0;i+4<=mfRaw.length;i+=4) miniFat.push(mdv.getUint32(i,true));
+    stream = chain(wb.start, miniFat, wb.size, function(n){ return mini.subarray(n*mss, n*mss+mss); });
+  } else {
+    stream = chain(wb.start, fat, wb.size, bigSec);
+  }
+  return readBiff(stream);
+}
+
+function readBiff(st){
+  var dv = new DataView(st.buffer, st.byteOffset, st.byteLength);
+  var pos = 0, sst = [], rows = [], bof = 0, recs = [];
+  while (pos+4 <= st.length){
+    var id = dv.getUint16(pos,true), len = dv.getUint16(pos+2,true);
+    recs.push({id:id, o:pos+4, n:len});
+    pos += 4+len;
+  }
+  function put(r,c,v){ (rows[r] || (rows[r]=[]))[c] = v; }
+  function rk(o){
+    var v = dv.getInt32(o,true), num;
+    if (v & 2) num = v >> 2;
+    else { var b = new DataView(new ArrayBuffer(8)); b.setUint32(4, v & 0xFFFFFFFC, true); num = b.getFloat64(0,true); }
+    return (v & 1) ? num/100 : num;
+  }
+  // tek parça içindeki unicode string (LABEL hücresi için)
+  function ustr(o){
+    var cch = dv.getUint16(o,true), fl = st[o+2], s = '', p = o+3;
+    if (fl & 8) p += 2; if (fl & 4) p += 4;
+    for (var i=0;i<cch;i++){ if (fl & 1){ s += String.fromCharCode(dv.getUint16(p,true)); p+=2; } else s += String.fromCharCode(st[p++]); }
+    return s;
+  }
+  for (var i=0;i<recs.length;i++){
+    var r = recs[i], o = r.o;
+    if (r.id===0x0809){ bof++; continue; }
+    if (r.id===0x00FC){                      // SST + CONTINUE
+      var chunks = [r];
+      while (recs[i+1] && recs[i+1].id===0x003C) chunks.push(recs[++i]);
+      sst = readSst(st, dv, chunks);
+      continue;
+    }
+    if (bof!==2) continue;                   // yalnızca ilk sayfa
+    if (r.id===0x00FD) put(dv.getUint16(o,true), dv.getUint16(o+2,true), sst[dv.getUint32(o+6,true)]);
+    else if (r.id===0x0204) put(dv.getUint16(o,true), dv.getUint16(o+2,true), ustr(o+6));
+    else if (r.id===0x0203) put(dv.getUint16(o,true), dv.getUint16(o+2,true), dv.getFloat64(o+6,true));
+    else if (r.id===0x027E) put(dv.getUint16(o,true), dv.getUint16(o+2,true), rk(o+6));
+    else if (r.id===0x00BD){
+      var row = dv.getUint16(o,true), c = dv.getUint16(o+2,true);
+      for (var p=o+4; p+6 <= o+r.n-2; p+=6) put(row, c++, rk(p+2));
+    }
+  }
+  return rows;
+}
+
+function readSst(st, dv, chunks){
+  var ci = 0, p = chunks[0].o + 8, end = chunks[0].o + chunks[0].n;
+  var total = dv.getUint32(chunks[0].o+4, true), out = [];
+  function next(){ ci++; if (ci>=chunks.length) return false; p = chunks[ci].o; end = p + chunks[ci].n; return true; }
+  function skip(n){ while (n>0){ if (p>=end && !next()) return; var k = Math.min(n, end-p); p += k; n -= k; } }
+  for (var s=0; s<total; s++){
+    if (p>=end && !next()) break;
+    var cch = dv.getUint16(p,true), fl = st[p+2]; p += 3;
+    var runs = 0, ext = 0;
+    if (fl & 8){ runs = dv.getUint16(p,true); p += 2; }
+    if (fl & 4){ ext = dv.getUint32(p,true); p += 4; }
+    var hi = fl & 1, str = '';
+    for (var i=0;i<cch;i++){
+      if (p>=end){ if (!next()) break; hi = st[p++] & 1; }   // CONTINUE başında yeni bayrak
+      if (hi){ str += String.fromCharCode(dv.getUint16(p,true)); p += 2; }
+      else str += String.fromCharCode(st[p++]);
+    }
+    skip(runs*4 + ext);
+    out.push(str);
+  }
+  return out;
+}
+
+/* HTML tablosu olarak kaydedilmiş "xls" ve düz metin (csv/tsv) */
+function readHtml(text){
+  var doc = new DOMParser().parseFromString(text, 'text/html'), rows = [];
+  doc.querySelectorAll('tr').forEach(function(tr){
+    var r = []; tr.querySelectorAll('th,td').forEach(function(td){ r.push(td.textContent); }); rows.push(r);
+  });
+  return rows;
+}
+function readText(text){
+  var lines = text.split(/\r?\n/).filter(function(l){ return l.trim(); });
+  var sep = (lines[0]||'').indexOf('\t')>=0 ? '\t' : ((lines[0]||'').indexOf(';')>=0 ? ';' : ',');
+  return lines.map(function(l){ return l.split(sep).map(function(c){ return c.replace(/^"|"$/g,''); }); });
+}
+function loadSheetJs(){
+  return new Promise(function(res, rej){
+    if (window.XLSX) return res();
+    var s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    s.onload = function(){ res(); }; s.onerror = function(){ rej(new Error('okuyucu yüklenemedi')); };
+    document.head.appendChild(s);
+  });
+}
+function viaSheetJs(buf){
+  return loadSheetJs().then(function(){
+    var wb = XLSX.read(new Uint8Array(buf), {type:'array'});
+    return XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header:1, raw:true, defval:''});
+  });
+}
+function readAny(buf){
+  var u8 = new Uint8Array(buf);
+  if (u8[0]===0xD0 && u8[1]===0xCF){
+    try { return Promise.resolve(readXls(buf)); } catch(e){ return viaSheetJs(buf); }
+  }
+  if (u8[0]===0x50 && u8[1]===0x4B) return viaSheetJs(buf);
+  var text = new TextDecoder('utf-8').decode(u8);
+  return Promise.resolve(/<t[dr][\s>]/i.test(text) ? readHtml(text) : readText(text));
+}
+
+/* Satırlardan isim + barkod çıkar */
+function cell(v){
+  if (v==null) return '';
+  if (typeof v==='number') return Number.isInteger(v) ? String(v) : String(Math.round(v));
+  return String(v).replace(/\s+/g,' ').trim();
+}
+function extract(rows){
+  var h = -1, cn = -1, cb = -1;
+  for (var r=0; r<Math.min(rows.length,15) && h<0; r++){
+    var row = rows[r] || []; cn = -1; cb = -1;
+    for (var c=0;c<row.length;c++){
+      var t = trLower(cell(row[c]));
+      if (cn<0 && (/ad[ıi]?\s*soyad/.test(t) || t==='alıcı' || t==='alici' || t==='müşteri' || t==='ad soyad')) cn = c;
+      if (cb<0 && /barkod/.test(t)) cb = c;
+    }
+    if (cn>=0 && cb>=0) h = r;
+  }
+  if (h<0) throw new Error('Dosyada "Adı Soyadı" ve "Barkod" sütunları bulunamadı.');
+  var out = [], seen = {};
+  for (r=h+1; r<rows.length; r++){
+    var row2 = rows[r]; if (!row2) continue;
+    var n = cell(row2[cn]), b = cell(row2[cb]).replace(/\s+/g,'');
+    if (!n && !b) continue;
+    var key = b || ('#'+n);
+    if (seen[key]) continue; seen[key] = 1;
+    out.push([n, b]);
+  }
+  if (!out.length) throw new Error('Dosyada gönderi satırı yok.');
+  return out;
+}
+
+/* ============================================================
+   2) LİNK İÇİNE SIKIŞTIRMA (liste linkin # kısmında durur, sunucuya gitmez)
+   ============================================================ */
+function b64e(u8){
+  var s = ''; for (var i=0;i<u8.length;i+=0x8000) s += String.fromCharCode.apply(null, u8.subarray(i,i+0x8000));
+  return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+function b64d(s){
+  s = s.replace(/-/g,'+').replace(/_/g,'/'); while (s.length%4) s += '=';
+  var bin = atob(s), u8 = new Uint8Array(bin.length);
+  for (var i=0;i<bin.length;i++) u8[i] = bin.charCodeAt(i);
+  return u8;
+}
+function pipe(u8, stream){
+  var w = stream.writable.getWriter(); w.write(u8); w.close();
+  return new Response(stream.readable).arrayBuffer().then(function(b){ return new Uint8Array(b); });
+}
+function pack(obj){
+  var raw = new TextEncoder().encode(JSON.stringify(obj));
+  if (typeof CompressionStream==='undefined') return Promise.resolve('0'+b64e(raw)+'x');
+  return pipe(raw, new CompressionStream('deflate')).then(function(z){ return '1'+b64e(z)+'x'; })
+    .catch(function(){ return '0'+b64e(raw)+'x'; });
+}
+function unpack(s){
+  s = s.replace(/[^0-9A-Za-z_-]/g,'');
+  var mode = s.charAt(0), body = s.slice(1).replace(/x$/,''), u8 = b64d(body);
+  var p = mode==='1' ? pipe(u8, new DecompressionStream('deflate')) : Promise.resolve(u8);
+  return p.then(function(raw){ return JSON.parse(new TextDecoder().decode(raw)); });
+}
+function hashOf(s){ var h = 5381; for (var i=0;i<s.length;i++) h = ((h<<5)+h + s.charCodeAt(i)) >>> 0; return h.toString(36); }
+
+/* ============================================================
+   3) YÜKLEME EKRANI
+   ============================================================ */
+function today(){
+  var d = new Date(), z = function(n){ return (n<10?'0':'')+n; };
+  return z(d.getDate())+'.'+z(d.getMonth()+1)+'.'+d.getFullYear();
+}
+function showMsg(text, err){
+  var m = $('uMsg'); m.textContent = text; m.className = 'msg' + (err?' err':'');
+}
+function handleFile(file){
+  if (!file) return;
+  $('uResult').classList.add('hidden');
+  showMsg('Okunuyor…');
+  file.arrayBuffer().then(readAny).then(function(rows){
+    var list = extract(rows);
+    list.sort(function(a,b){ return a[0].localeCompare(b[0],'tr'); });
+    var data = { d: today(), r: list };
+    return pack(data).then(function(p){
+      var url = location.href.split('#')[0] + '#L=' + p;
+      var noB = list.filter(function(x){ return !x[1]; }).length;
+      showMsg(list.length + ' gönderi bulundu.' + (noB ? ' ('+noB+' tanesinin barkodu boş)' : ''));
+      $('link').value = url;
+      $('bOpen').href = url;
+      $('bWa').href = 'https://wa.me/?text=' + encodeURIComponent('Kargo listesi ' + data.d + ' (' + list.length + ' adet)\n' + url);
+      var pv = $('preview'); pv.textContent = '';
+      list.forEach(function(x){
+        var d = document.createElement('div'), a = document.createElement('span'), c = document.createElement('code');
+        a.textContent = x[0]; c.textContent = x[1]; d.appendChild(a); d.appendChild(c); pv.appendChild(d);
+      });
+      $('uResult').classList.remove('hidden');
+    });
+  }).catch(function(e){
+    showMsg('Dosya okunamadı: ' + (e && e.message ? e.message : e), true);
+  });
+}
+function initUpload(){
+  $('vUpload').classList.remove('hidden');
+  var drop = $('drop'), file = $('file');
+  file.addEventListener('change', function(){ handleFile(file.files[0]); file.value = ''; });
+  ['dragenter','dragover'].forEach(function(ev){ drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.add('over'); }); });
+  ['dragleave','drop'].forEach(function(ev){ drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.remove('over'); }); });
+  drop.addEventListener('drop', function(e){ handleFile(e.dataTransfer.files[0]); });
+  window.addEventListener('dragover', function(e){ e.preventDefault(); });
+  window.addEventListener('drop', function(e){ e.preventDefault(); });
+  $('bCopy').addEventListener('click', function(){
+    var inp = $('link'), btn = $('bCopy');
+    var ok = function(){ btn.textContent = 'Kopyalandı ✓'; setTimeout(function(){ btn.textContent = 'Linki kopyala'; }, 1800); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(inp.value).then(ok, function(){ inp.select(); document.execCommand('copy'); ok(); });
+    else { inp.select(); document.execCommand('copy'); ok(); }
+  });
+  $('link').addEventListener('focus', function(){ this.select(); });
+}
+
+/* ============================================================
+   4) LİSTE EKRANI (telefon)
+   ============================================================ */
+var store = {
+  get: function(k){ try { return JSON.parse(localStorage.getItem(k)); } catch(e){ return null; } },
+  set: function(k,v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} },
+  clean: function(){
+    try {
+      var now = Date.now();
+      for (var i=localStorage.length-1;i>=0;i--){
+        var k = localStorage.key(i); if (!k || k.indexOf('kl:')!==0) continue;
+        var v = store.get(k); if (!v || !v.t || now - v.t > 14*864e5) localStorage.removeItem(k);
+      }
+    } catch(e){}
+  }
+};
+
+function initList(data, packed){
+  var items = data.r.map(function(x, i){ return { n: x[0], b: x[1], id: x[1] || ('#'+i+x[0]) }; });
+  var key = 'kl:' + hashOf(packed), saved = store.get(key) || {};
+  var on = {}; (saved.c || []).forEach(function(id){ on[id] = 1; });
+  var sortMode = saved.s || 'az', q = '';
+  store.clean();
+  $('vList').classList.remove('hidden');
+  $('lDate').textContent = data.d || '';
+  document.title = 'Kargo listesi ' + (data.d || '');
+
+  function save(){ store.set(key, { c: Object.keys(on), s: sortMode, t: Date.now() }); }
+  function sorted(){
+    var a = items.slice();
+    if (sortMode==='az') a.sort(function(x,y){ return x.n.localeCompare(y.n,'tr') || x.b.localeCompare(y.b); });
+    else a.sort(function(x,y){ return x.b.localeCompare(y.b) || x.n.localeCompare(y.n,'tr'); });
+    return a;
+  }
+  function match(it){
+    if (!q) return true;
+    var t = trLower(q).trim();
+    return trLower(it.n).indexOf(t)>=0 || it.b.indexOf(t.replace(/\s+/g,''))>=0;
+  }
+  function rowEl(it, no){
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'row' + (on[it.id] ? ' on' : ''); b.dataset.id = it.id;
+    var box = document.createElement('span'); box.className = 'box'; box.textContent = '✓';
+    var txt = document.createElement('span'); txt.className = 'txt';
+    var nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = it.n || '(isimsiz)';
+    var bc = document.createElement('span'); bc.className = 'bc';
+    if (it.b.length > 4){ bc.appendChild(document.createTextNode(it.b.slice(0,-4)+' ')); var l4 = document.createElement('b'); l4.textContent = it.b.slice(-4); bc.appendChild(l4); }
+    else { var l = document.createElement('b'); l.textContent = it.b || 'barkod yok'; bc.appendChild(l); }
+    txt.appendChild(nm); txt.appendChild(bc);
+    var num = document.createElement('span'); num.className = 'no'; num.textContent = no;
+    b.appendChild(box); b.appendChild(txt); b.appendChild(num);
+    return b;
+  }
+  function render(){
+    var all = sorted(), todo = $('todo'), done = $('done'), nDone = 0, shownTodo = 0, shownDone = 0;
+    todo.textContent = ''; done.textContent = '';
+    all.forEach(function(it, i){
+      var isOn = !!on[it.id]; if (isOn) nDone++;
+      if (!match(it)) return;
+      (isOn ? done : todo).appendChild(rowEl(it, i+1));
+      if (isOn) shownDone++; else shownTodo++;
+    });
+    var total = all.length, left = total - nDone;
+    $('cDone').textContent = nDone + ' / ' + total;
+    $('cLeft').textContent = left ? (left + ' poşet kaldı') : 'tamam';
+    $('cLeft').className = 'left' + (left ? '' : ' done');
+    $('bar').style.width = (total ? Math.round(nDone*100/total) : 0) + '%';
+    $('allDone').classList.toggle('hidden', left!==0 || !!q);
+    $('doneSec').classList.toggle('hidden', shownDone===0);
+    if (!shownTodo && left && q){ var e = document.createElement('div'); e.className = 'empty'; e.textContent = 'Aramaya uyan kalan poşet yok.'; todo.appendChild(e); }
+    $('bSort').textContent = sortMode==='az' ? 'A-Z' : 'Barkod';
+
+    var lines = ['Kargo listesi ' + (data.d||'') + ': ' + nDone + ' / ' + total + ' poşet çantada.'];
+    if (left){ lines.push('Eksik ' + left + ' poşet:'); all.forEach(function(it){ if (!on[it.id]) lines.push('- ' + it.n + ' ' + it.b); }); }
+    else lines.push('Eksik yok.');
+    $('bReport').href = 'https://wa.me/?text=' + encodeURIComponent(lines.join('\n'));
+  }
+  function toggle(e){
+    var el = e.target.closest ? e.target.closest('.row') : null; if (!el) return;
+    var id = el.dataset.id;
+    if (on[id]) delete on[id]; else on[id] = 1;
+    try { if (navigator.vibrate) navigator.vibrate(25); } catch(x){}
+    save(); render();
+  }
+  $('todo').addEventListener('click', toggle);
+  $('done').addEventListener('click', toggle);
+  $('q').addEventListener('input', function(){ q = this.value; render(); });
+  $('bSort').addEventListener('click', function(){ sortMode = sortMode==='az' ? 'bc' : 'az'; save(); render(); });
+  var armed = 0;
+  $('bReset').addEventListener('click', function(){
+    var btn = this;
+    if (!armed){ armed = 1; btn.textContent = 'Emin misin? Tekrar bas'; setTimeout(function(){ armed = 0; btn.textContent = 'Sıfırla'; }, 3000); return; }
+    armed = 0; btn.textContent = 'Sıfırla'; on = {}; save(); render();
+  });
+  render();
+}
+
+/* ============================================================
+   5) BAŞLANGIÇ
+   ============================================================ */
+function start(){
+  ['vUpload','vList','vErr'].forEach(function(v){ $(v).classList.add('hidden'); });
+  var m = /[#&]L=([^&]+)/.exec(location.hash);
+  if (!m) return initUpload();
+  unpack(m[1]).then(function(data){
+    if (!data || !Array.isArray(data.r) || !data.r.length) throw new Error('boş');
+    initList(data, m[1].replace(/[^0-9A-Za-z_-]/g,''));
+  }).catch(function(){ $('vErr').classList.remove('hidden'); });
+}
+window.addEventListener('hashchange', function(){ location.reload(); });
+start();
+})();
+</script>
+</body>
+</html>
